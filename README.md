@@ -86,4 +86,58 @@ This is the place for you to write reflections:
 
 #### Reflection Subscriber-1
 
+Pertanyaan 1: In this tutorial, we used RwLock<> to synchronise the use of Vec of Notifications. Explain why it is necessary for this case, and explain why we do not use Mutex<> instead?
+
+Jawaban:
+
+RwLock (Read-Write Lock) dipilih karena memiliki keunggulan spesifik dalam skenario ini:
+
+- Memungkinkan multiple read operations secara concurrent
+
+- Hanya satu write operation yang dapat dilakukan pada satu waktu
+
+- Mengoptimalkan performa untuk operasi yang lebih banyak membaca daripada menulis
+
+Keuntungan RwLock dibandingkan Mutex:
+
+- Mutex mengunci seluruh struktur data untuk setiap operasi (read atau write)
+
+- RwLock memperbolehkan beberapa thread membaca secara bersamaan
+
+- Meningkatkan throughput pada operasi yang lebih sering membaca
+
+
+Pertanyaan 2: In this tutorial, we used lazy_static external library to define Vec and DashMap as a “static” variable. Compared to Java where we can mutate the content of a static variable via a static function, why did not Rust allow us to do so?
+
+
+Jawaban:
+
+Rust memiliki aturan ketat tentang mutasi variabel statis karena alasan keamanan:
+
+- Mencegah data race pada variabel global
+
+- Menjamin thread safety
+
+- Menghindari side effects yang tidak terduga
+
+Dalam Java, mutasi variabel statis tidak aman. Rust memaksa penggunaan tipe khusus untuk mutasi variabel statis, seperti:
+
+- Mutex<T>
+
+- RwLock<T>
+
+- AtomicXXX
+
+- lazy_static! macro
+
+Alasan desain Rust:
+
+- Mencegah bug concurrency
+
+- Memaksa programmer untuk secara eksplisit menangani shared state
+
+- Menjamin memory safety dan thread safety pada compile-time
+
+Jadi, dapat disimpulkan bahwa Rust memilih desain yang lebih aman dan eksplisit dibandingkan bahasa lain, dengan mengharuskan mekanisme sinkronisasi yang jelas untuk mengubah variabel statis, terutama dalam konteks concurrent programming.
+
 #### Reflection Subscriber-2
