@@ -141,3 +141,59 @@ Alasan desain Rust:
 Jadi, dapat disimpulkan bahwa Rust memilih desain yang lebih aman dan eksplisit dibandingkan bahasa lain, dengan mengharuskan mekanisme sinkronisasi yang jelas untuk mengubah variabel statis, terutama dalam konteks concurrent programming.
 
 #### Reflection Subscriber-2
+
+Pertanyaan 1: Have you explored things outside of the steps in the tutorial, for example: src/lib.rs? If not, explain why you did not do so. If yes, explain things that you have learned from those other parts of code.
+
+Jawaban:
+
+Ya, saya telah mengeksplorasi beberapa bagian di luar langkah-langkah dalam tutorial, terutama di src/lib.rs dan src/main.rs. Dari bagian-bagian kode tersebut, saya mempelajari beberapa hal berikut:
+
+a. Penggunaan lazy_static! untuk Inisialisasi Global
+
+Dalam src/lib.rs, saya melihat bagaimana lazy_static! digunakan untuk mendeklarasikan objek global seperti REQWEST_CLIENT dan APP_CONFIG. Ini berguna karena objek hanya akan diinisialisasi sekali ketika pertama kali diakses, yang menghemat sumber daya dan meningkatkan efisiensi.
+
+b. Konfigurasi Aplikasi dengan dotenvy dan Figment
+
+- dotenvy digunakan untuk membaca variabel lingkungan dari file .env, yang memungkinkan konfigurasi fleksibel tanpa mengubah kode.
+
+- Figment membantu dalam pengelolaan konfigurasi dengan menggabungkan nilai default dan variabel lingkungan (Env::prefixed("APP_")), sehingga aplikasi dapat dengan mudah dikonfigurasi ulang untuk berbagai lingkungan (development, staging, production).
+
+c. Struktur AppConfig dengan Getters untuk Enkapsulasi
+
+AppConfig menggunakan derive Getters dari crate getset untuk membuat metode getter secara otomatis. Ini membantu dalam menjaga enkapsulasi dengan memberikan akses hanya ke atribut yang diperlukan tanpa mengekspos secara langsung.
+
+d. Penanganan Error yang Terstruktur
+
+- Struct ErrorResponse digunakan untuk menangani error dengan format JSON yang terstandarisasi.
+
+- compose_error_response dibuat agar lebih mudah mengembalikan error dalam bentuk Custom<Json<ErrorResponse>>, yang mempermudah debugging dan respons API yang lebih konsisten.
+
+e. Struktur Proyek Rocket di src/main.rs
+
+- #[macro_use] extern crate rocket; digunakan untuk mengimpor macro dari Rocket, yang diperlukan untuk mendefinisikan routes dengan anotasi seperti #[get("/")].
+
+- route_stage() yang dipanggil dalam rocket::build() menunjukkan adanya sistem modularisasi dalam proyek ini, di mana routing ditangani dalam modul controller.
+
+- rocket::build() digunakan untuk membangun aplikasi Rocket dengan menambahkan konfigurasi dan mengelola dependensi seperti reqwest::Client.
+
+Dari eksplorasi ini, saya mendapatkan pemahaman yang lebih dalam tentang bagaimana aplikasi Rust berbasis Rocket dikonfigurasi, bagaimana cara menangani error dengan baik, serta bagaimana memastikan kode tetap modular dan mudah dipelihara.
+
+Pertanyaan 2: Since you have completed the tutorial by now and have tried to test your notification system by spawning multiple instances of Receiver, explain how Observer pattern eases you to plug in more subscribers. How about spawning more than one instance of Main app, will it still be easy enough to add to the system?
+
+
+Jawaban:
+
+Pola Observer memudahkan penambahan lebih banyak subscriber (Receiver) karena sistem dibangun dengan prinsip de-coupling antara Publisher (Main app) dan Subscriber (Receiver). Dengan pendekatan ini, Publisher tidak perlu mengetahui detail setiap Receiver secara langsung. Setiap Receiver cukup mendaftarkan dirinya ke sistem, dan ketika suatu event terjadi, Publisher secara otomatis akan mengirimkan notifikasi ke semua Receiver yang terdaftar. Hal ini membuat proses penambahan Receiver baru menjadi lebih fleksibel dan tidak memerlukan perubahan pada kode Publisher.
+
+Namun, jika ingin menambahkan lebih dari satu instance Main app (Publisher), kompleksitas sistem akan meningkat. Dalam skenario ini, perlu dipastikan bahwa setiap instance Publisher memiliki mekanisme koordinasi agar tidak terjadi duplikasi pengiriman notifikasi atau inkonsistensi data. Salah satu solusi yang dapat diterapkan adalah menggunakan message broker seperti Redis Pub/Sub atau Kafka untuk menangani komunikasi antar Publisher dan Subscriber secara lebih terstruktur. Dengan pendekatan yang tepat, sistem tetap dapat diperluas dengan mudah, baik dalam hal menambah Receiver maupun menambah instance Publisher.
+
+Pertanyaan 3: Have you tried to make your own Tests, or enhance documentation on your Postman collection? If you have tried those features, tell us whether it is useful for your work (it can be your tutorial work or your Group Project).
+
+
+Jawaban:
+
+Saya telah mencoba menggunakan Postman collection yang disediakan untuk berinteraksi dengan aplikasi melalui HTTP request. Dalam prosesnya, saya menguji berbagai endpoint seperti subscribe ke product type, membuat produk baru, mempromosikan produk, dan menghapus produk untuk melihat apakah notifikasi berhasil dikirim ke Receiver app.
+
+Dari pengalaman ini, saya menemukan bahwa menambahkan test di Postman sangat membantu dalam memastikan setiap perubahan pada sistem tidak merusak fungsionalitas utama. Dengan menulis test, saya bisa secara otomatis memverifikasi apakah respons dari setiap request sesuai dengan yang diharapkan. Selain itu, menambahkan dokumentasi ke Postman collection membuat proses debugging lebih mudah, terutama saat harus memahami kembali cara kerja API setelah beberapa waktu tidak menggunakannya.
+
+Secara keseluruhan, fitur ini sangat berguna untuk mempercepat pengujian dan validasi implementasi dari tutorial yang telah saya selesaikan. Jika ada perubahan di masa depan, saya dapat langsung menjalankan kembali koleksi Postman tanpa harus mengetes setiap request secara manual.
